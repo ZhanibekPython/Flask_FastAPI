@@ -6,7 +6,7 @@ shop = Flask(__name__)
 @shop.route('/main/')
 @shop.route('/')
 def main_page():
-    return render_template('shop.html')
+    return render_template('index.html')
 
 @shop.route('/clothes')
 @shop.route('/category/clothes')
