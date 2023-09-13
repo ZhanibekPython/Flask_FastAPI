@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+
+{% block title %}
+    {{ super() }} {{ title }}
+{% endblock %}
+
+{% block content %}
+    {{ super() }}
+    <div>
+        <form action="/" method="post"></form>
+        <label for="name"> Name </label><input type="text" id="name" name="name" required>
+        <label for="surname"> Surname </label><input type="text" id="surname" name="surname" required>
+        <label for="age"> Age </label><input type="number" id="age" name="age" required>
+        <label for="group"> Group </label><input type="text" id="group" name="group" required>
+        <label for="gender"> Gender </label><input type="text" id="gender" name="gender" required>
+        <label for="dep_id"> Department </label><input type="text" id="dep_id" name="dep_id" required>
+    </div>
+{% endblock %}

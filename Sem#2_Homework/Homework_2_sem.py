@@ -13,8 +13,6 @@ def welcome():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
-
-        # Создаем cookie с данными пользователя
         resp = make_response(redirect(url_for('greet')))
         resp.set_cookie('user_name', name)
         resp.set_cookie('user_email', email)
@@ -25,7 +23,6 @@ def welcome():
 
 @app.route('/greet')
 def greet():
-    # Получаем данные пользователя из cookie
     name = request.cookies.get('user_name')
     email = request.cookies.get('user_email')
     return render_template('greet.html', name=name, email=email)
@@ -33,7 +30,6 @@ def greet():
 
 @app.route('/logout')
 def logout():
-    # Удаляем cookie с данными пользователя и перенаправляем на страницу ввода данных
     resp = make_response(redirect(url_for('index')))
     resp.delete_cookie('user_name')
     resp.delete_cookie('user_email')
