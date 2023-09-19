@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+
+{% block content %}
+{{ super() }}
+<h1>Регистрация</h1>
+{% for msg in get_flashed_messages() %}
+<div class="flash">{{ msg }}</div>
+{% endfor %}
+<form method="post" action="/register" class="form-contact">
+    <p><label for="name"> Имя </label>
+        <input type="text" id="name" value="" required />
+    <p><label for="password"> Пароль </label>
+        <input type="text" id="password" value="" required />
+    <p><input type="submit" value="Отправить" />
+</form>
+{% endblock %}
