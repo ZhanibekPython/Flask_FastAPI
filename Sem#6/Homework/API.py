@@ -1,23 +1,22 @@
 from typing import List
-
-import databases
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import MetaData, Table, Boolean, String, Integer, Column, Text, Float, ForeignKey
 from sqlalchemy import create_engine
+import databases
 
 DATABASE_URL = "sqlite:///sem#6_HW.db"
 database = databases.Database(DATABASE_URL)
 metadata = MetaData()
 
-user = Table('user', metadata,
-             Column('id', Integer, primary_key=True),
-             Column('name', String(30), nullable=False),
-             Column('surname', String(30), nullable=False),
-             Column('email', String(50), unique=True),
-             Column('psw', String(30), nullable=False),
-             )
+users = Table('users', metadata,
+              Column('id', Integer, primary_key=True),
+              Column('name', String(30), nullable=False),
+              Column('surname', String(30), nullable=False),
+              Column('email', String(50), unique=True),
+              Column('psw', String(30), nullable=False),
+              )
 
 
 class User(BaseModel):
@@ -35,12 +34,12 @@ class UserIn(BaseModel):
     psw: str = Field(..., title='Password', max_length=50)
 
 
-product = Table('product', metadata,
-                Column('id', Integer, primary_key=True),
-                Column('name', String(30), nullable=False),
-                Column('description', Text, nullable=False),
-                Column('price', Float),
-                )
+products = Table('products', metadata,
+                 Column('id', Integer, primary_key=True),
+                 Column('name', String(30), nullable=False),
+                 Column('description', Text, nullable=False),
+                 Column('price', Float),
+                 )
 
 
 class Product(BaseModel):
@@ -56,13 +55,13 @@ class ProductIn(BaseModel):
     price: float = Field(..., title='Price', max_length=50)
 
 
-order = Table('order', metadata,
-              Column('id', Integer, primary_key=True),
-              Column('user_id', Integer, ForeignKey('user.id')),
-              Column('product_id', Integer, ForeignKey('order.id')),
-              Column('order_date', String, nullable=False),
-              Column('status', Boolean, nullable=False),
-              )
+orders = Table('orders', metadata,
+               Column('id', Integer, primary_key=True),
+               Column('user_id', Integer, ForeignKey('users.id')),
+               Column('product_id', Integer, ForeignKey('products.id')),
+               Column('order_date', String, nullable=False),
+               Column('status', Boolean, nullable=False),
+               )
 
 
 class Order(BaseModel):
@@ -85,99 +84,101 @@ async def index():
 
 
 @hw.get('/users/', response_model=List[User])
-async def get_users(usr: User):
-    query = user.select()
+async def get_users():
+    query = users.select()
     return await database.fetch_all(query)
 
 
 @hw.get('/users/{user_id}', response_model=User)
-async def get_one_user(user_id: int, usr: User):
-    query = usr.select().where(usr.c.id == user_id)
+async def get_one_user(user_id: int):
+    query = users.select().where(users.c.id == user_id)
     return await database.fetch_one(query)
 
 
 @hw.post('/users/', response_model=UserIn)
-async def add_new_user(usr: UserIn):
-    query = usr.insert().values(name=usr.name, surname=usr.surname, email=usr.email, psw=usr.psw)
+async def add_new_user(user: UserIn):
+    query = users.insert().values(name=user.name, surname=user.surname, email=user.email, psw=user.psw)
     res = await database.execute(query)
     return res
 
 
 @hw.put('/users/{user_id}', response_model=User)
 async def change_user(user_id: int, new_user: User):
-    query = user.update().where(user.c.id == user_id).values(**new_user.dict())
+    query = users.update().where(users.c.id == user_id).values(name=new_user.name, surname=new_user.surname,
+                                                               email=new_user.email, psw=new_user.psw)
     await database.execute(query)
 
 
 @hw.delete('/users/{user_id}')
 async def delete_user(user_id: int):
-    query = user.delete().where(user.c.id == user_id)
+    query = users.delete().where(users.c.id == user_id)
     await database.execute(query)
     return {'message': 'User was deleted'}
 
 
 @hw.get('/products/', response_model=List[Product])
-async def get_products(prodct: Product):
-    query = prodct.select()
+async def get_products():
+    query = products.select()
     return await database.fetch_all(query)
 
 
 @hw.get('/products/{product_id}', response_model=Product)
-async def get_one_product(product_id: int, prodct: Product):
-    query = prodct.select().where(prodct.c.id == product_id)
+async def get_one_product(product_id: int):
+    query = products.select().where(products.c.id == product_id)
     return await database.fetch_one(query)
 
 
 @hw.post('/products/', response_model=ProductIn)
-async def add_new_product(prodct: ProductIn):
-    query = prodct.insert().values(name=prodct.name, description=prodct.description, price=prodct.price)
+async def add_new_product(product: ProductIn):
+    query = products.insert().values(name=product.name, description=product.description, price=product.price)
     res = await database.execute(query)
     return res
 
 
 @hw.put('/products/{product_id}', response_model=Product)
 async def change_product(product_id: int, new_product: Product):
-    query = product.update().where(product.c.id == product_id).values(name=product.name,
-                                                                      description=product.description,
-                                                                      price=product.price)
+    query = products.update().where(products.c.id == product_id).values(name=new_product.name,
+                                                                        description=new_product.description,
+                                                                        price=new_product.price)
     await database.execute(query)
 
 
 @hw.delete('/products/{product_id}')
 async def delete_product(product_id: int):
-    query = product.delete().where(product.c.id == product_id)
+    query = products.delete().where(products.c.id == product_id)
     await database.execute(query)
     return {'message': 'Product was deleted'}
 
 
 @hw.get('/orders/', response_model=List[Order])
-async def get_orders(ordr: Order):
-    query = ordr.select()
+async def get_orders():
+    query = orders.select()
     return await database.fetch_all(query)
 
 
 @hw.get('/orders/{order_id}', response_model=Order)
-async def get_one_order(order_id: int, ordr: Order):
-    query = ordr.select().where(ordr.c.id == order_id)
+async def get_one_order(order_id: int):
+    query = orders.select().where(orders.c.id == order_id)
     return await database.fetch_one(query)
 
 
 @hw.post('/orders/', response_model=OrderIn)
-async def add_new_order(ordr: OrderIn):
-    query = order.insert().values(order_date=ordr.order_date, status=ordr.status)
+async def add_new_order(order: OrderIn):
+    query = orders.insert().values(order_date=order.order_date, status=order.status)
     res = await database.execute(query)
     return res
 
 
-@hw.put('/orders/{order_id}', response_model=Order)
-async def change_order(uorder_id: int, new_order: Order):
-    query = order.update().where(order.c.id == order_id).values(**new_order.dict())
+@hw.put('/orders/{order_id}', response_model=OrderIn)
+async def change_order(order_id: int, new_order: OrderIn):
+    query = orders.update().where(orders.c.id == order_id).values(order_date=new_order.order_date,
+                                                                  status=new_order.status)
     await database.execute(query)
 
 
 @hw.delete('/orders/{order_id}')
 async def delete_order(order_id: int):
-    query = order.delete().where(order.c.id == order_id)
+    query = orders.delete().where(orders.c.id == order_id)
     await database.execute(query)
     return {'message': 'User was deleted'}
 
